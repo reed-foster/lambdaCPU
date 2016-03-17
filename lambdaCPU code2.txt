@@ -1,0 +1,76 @@
+###########################################################
+Simple Loop
+
+c++:
+
+while (x < 0x2016) {
+	x++;
+}
+print(x);
+
+asm:
+
+ori $2, $0, 0x2016 # register0 | 0x2016 -> register2
+ori $3, $0, 0x2016 # register0 | 0x2016 -> register3
+addi $1, $1, 0x0001 # register1++
+sub $3, $2, $1 # register2 - register1 -> register3
+bgtz $3, 0xfffe # if register3 > 0 then jump back 2
+sll $0, $0, 0x00 #no-op
+sw $1, ($0) # register1 -> RAM[register0]
+
+machine:
+
+0x34022016
+0x34032016
+0x20210001
+0x00411822
+
+0x1c60fffe
+0x00000000
+0xac010000
+
+###########################################################
+Accumulator Test
+
+c++:
+
+q = math.floor(0x27 / 0x05);
+r = 0x27 - q * 0x05;
+print(q);
+print(r);
+q = 0xDEADBEEF;
+r = 0xFA57C4DE;
+print(q);
+print(r);
+
+asm:
+
+ori $1, $0, 0x0027 # register0 | 0x0027 -> register1
+ori $2, $0, 0x0005 # register0 | 0x0005 -> register2
+div $1, $2 # register1 / register2; q -> LO, r -> HI
+mfhi $2 # HI -> register2
+mflo $1 # LO -> register1
+sw $1, ($0) # register1 -> RAM[register0]
+sw $2, 1($0) # register2 -> RAM[register0 + 1]
+lui $1, 0xDEAD # 0xDEAD0000 -> register1
+ori $1, $1, 0xBEEF # register1 | 0x0000BEEF -> register1
+mthi $1 # HI -> register1
+mfhi $1 # HI -> register1
+sw $1, 2($0) # register1 -> RAM[register0 + 2]
+
+machine:
+
+0x34010027
+0x34020005
+0x0022001a
+0x00001010
+
+0x00000812
+0xac010000
+0xac020001
+0x3c01dead
+
+0x3421beef
+0x00200011
+0x00200010
+0xac010002
